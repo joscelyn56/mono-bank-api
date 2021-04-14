@@ -77,7 +77,7 @@ npm run test
 
 ### Extras 
 
-- [Here's](https://documenter.getpostman.com/view/2849032/TVzXAaCk) the link to the postman API documentation. 
+- [Here's](https://documenter.getpostman.com/view/3596383/TzJphfHi) the link to the postman API documentation. 
 
 
 
