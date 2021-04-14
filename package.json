@@ -2,7 +2,7 @@
   "name": "mono",
   "version": "1.0.0",
   "description": "",
-  "main": "server.ts",
+  "main": "dist/server.js",
   "scripts": {
     "start": "npm run build:live",
     "build": "tsc -p .",
