@@ -24,7 +24,7 @@ server on your device.
 After the installation of the prerequisites, clone the repository
 
 ```bash
-sudo git clone https://gitlab.com/korapay-engineering/chuks-efam.git
+git clone https://github.com/joscelyn56/mono-bank-api.git
 ```
 
 - Change directory to the project's folder
