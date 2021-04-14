@@ -817,8 +817,8 @@
         "affectsGlobalScope": false
       },
       "./src/controllers/customer.ts": {
-        "version": "77926991ba685532a5a3d1fd03831b2aa2172a31e0799a21bcd02edf81297b1b",
-        "signature": "0adb554ca54cb1a6faea828107cda5446f8338ca1eac125c4fe775392157c2e0",
+        "version": "6dc411d3b12aae99467ac5cdd4b811250fe0c4114fe9d5d884c3d663ed77d4fd",
+        "signature": "9aef9a434d2c6be1d53f5b55ce0027840e295efcfeed93d5750776540e12be33",
         "affectsGlobalScope": false
       },
       "./src/routes/api/v1/customer.ts": {
