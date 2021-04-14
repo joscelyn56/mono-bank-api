@@ -102,22 +102,5 @@ export class CustomerController {
       res.status(400).json(response(0, error.message, error));
     }
   }
-
-  async generateAccountNumber(): Promise<any> {
-    let min = Math.ceil(2111111111);
-    let max = Math.floor(2999999999);
-    let accountNumber = Math.floor(Math.random() * (max - min + 1)) + min;
-
-    const query = {
-      where: {
-        account_number: accountNumber,
-      },
-      raw: true,
-    }
-    const existingAccount: any = await Account.findOne(query)
-
-    if (existingAccount) return await this.generateAccountNumber()
-    return accountNumber
-  }
 }
 
