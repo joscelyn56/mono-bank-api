@@ -6,10 +6,10 @@ require("dotenv").config();
 
 const connections = {
 	development: {
-		username: process.env.DB_USER_DEV,
-		password: process.env.DB_PASSWORD_DEV,
-		database: process.env.DB_NAME_DEV,
-		host: process.env.DB_HOST_DEV,
+		username: process.env.DB_USER,
+		password: process.env.DB_PASSWORD,
+		database: process.env.DB_NAME,
+		host: process.env.DB_HOST,
 		dialect: 'mysql',
 		options: {
 			pool: {
@@ -18,16 +18,16 @@ const connections = {
 				idle: 5000,
 				evict: 5000,
 			},
-			logging: process.env.NODE_ENV === 'test' ? false : console.log,
+			logging: true,
 			timezeone: 'Africa/Lagos',
 		}
 	},
 	
 	production: {
-		username: process.env.DB_USER_PROD,
-		password: process.env.DB_PASSWORD_PROD,
-		database: process.env.DB_NAME_PROD,
-		host: process.env.DB_HOST_PROD,
+		username: process.env.DB_USER,
+		password: process.env.DB_PASSWORD,
+		database: process.env.DB_NAME,
+		host: process.env.DB_HOST,
 		dialect: 'mysql',
 		options: {
 			pool: {
@@ -36,7 +36,7 @@ const connections = {
 				idle: 5000,
 				evict: 5000,
 			},
-			logging: process.env.NODE_ENV === 'test' ? false : console.log,
+			logging: false,
 			timezeone: 'Africa/Lagos',
 		}
 	}
