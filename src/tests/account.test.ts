@@ -13,8 +13,10 @@ let customer1Id: any = null
 let customer2Id: any = null
 let customer1AccountId: any = null
 let customer2AccountId: any = null
+let customer3AccountId: any = null
 let customer1AccountNumber: any = null
 let customer2AccountNumber: any = null
+let customer3AccountNumber: any = null
 
 /**
  * @description Test for user registration
@@ -126,6 +128,33 @@ describe('Register new customer', () => {
 })
 
 /**
+ * @description Test for create another account for customer
+ */
+describe('Create new account', () => {
+  test('It should create another account for customer successfully', async () => {
+    const {body} = await request(app.default)
+      .post('/api/v1/account')
+      .send({
+        customer_id: customer1Id,
+        deposit: 11000
+      })
+      .set({
+        'Accept': 'application/json',
+        'authorization': accessToken,
+      })
+      .expect('Content-Type', /json/)
+
+    expect(body.responseCode).toBe(1)
+    expect(body.responseText).toBe('ok')
+    expect(body.payload.account).toHaveProperty("account_number")
+    expect(body.payload.account).toHaveProperty("balance")
+
+    customer3AccountId = body.payload.account.id
+    customer3AccountNumber = body.payload.account.account_number
+  })
+})
+
+/**
  * @description Test for account information
  */
 describe('Get account information', () => {
@@ -140,7 +169,7 @@ describe('Get account information', () => {
 
     expect(body.responseCode).toBe(1)
     expect(body.responseText).toBe('ok')
-    expect(body.payload).toHaveLength(2)
+    expect(body.payload).toHaveLength(3)
   })
   test('It should return customer 1 account successfully', async () => {
     const {body} = await request(app.default)
@@ -179,8 +208,8 @@ describe('Transfer money across accounts', () => {
     const {body} = await request(app.default)
       .post('/api/v1/account/transfer')
       .send({
-        customer_id: customer1Id,
-        receiver_account_number: customer2AccountNumber,
+        sender_account_id: customer1AccountId,
+        receiver_account_id: customer2AccountId,
         amount: 4000
       })
       .set({
@@ -228,8 +257,100 @@ describe('Transfer money across accounts', () => {
 /**
  * @description Test for account transfer
  */
+describe('Transfer money between accounts owned by one customer', () => {
+  test('It should return transfer successful', async () => {
+    const {body} = await request(app.default)
+      .post('/api/v1/account/transfer')
+      .send({
+        sender_account_id: customer3AccountId,
+        receiver_account_id: customer1AccountId,
+        amount: 7000
+      })
+      .set({
+        'Accept': 'application/json',
+        'authorization': accessToken,
+      })
+      .expect('Content-Type', /json/)
+
+    expect(body.responseCode).toBe(1)
+    expect(body.responseText).toBe('ok')
+    expect(body.payload).toEqual({message: 'Transfer Successful'})
+  })
+  test('It should return customer 1 first account successfully', async () => {
+    const {body} = await request(app.default)
+      .get('/api/v1/account/' + customer1AccountId)
+      .set({
+        'Accept': 'application/json',
+        'authorization': accessToken,
+      })
+      .expect('Content-Type', /json/)
+
+    expect(body.responseCode).toBe(1)
+    expect(body.responseText).toBe('ok')
+    expect(body.payload).toHaveProperty("account_number")
+    expect(body.payload).toHaveProperty("balance")
+    expect(body.payload.balance).toEqual(8000)
+  })
+  test('It should return customer 1 second account successfully', async () => {
+    const {body} = await request(app.default)
+      .get('/api/v1/account/' + customer3AccountId)
+      .set({
+        'Accept': 'application/json',
+        'authorization': accessToken,
+      })
+      .expect('Content-Type', /json/)
+
+    expect(body.responseCode).toBe(1)
+    expect(body.responseText).toBe('ok')
+    expect(body.payload).toHaveProperty("account_number")
+    expect(body.payload).toHaveProperty("balance")
+    expect(body.payload.balance).toEqual(4000)
+  })
+})
+
+/**
+ * @description Test for account deposit
+ */
+describe('Deposit money into account owned one customer', () => {
+  test('It should return transfer successful', async () => {
+    const {body} = await request(app.default)
+      .post('/api/v1/account/deposit')
+      .send({
+        account_id: customer2AccountId,
+        deposit: 17000
+      })
+      .set({
+        'Accept': 'application/json',
+        'authorization': accessToken,
+      })
+      .expect('Content-Type', /json/)
+
+    expect(body.responseCode).toBe(1)
+    expect(body.responseText).toBe('ok')
+    expect(body.payload).toEqual({message: 'Deposit Successful'})
+  })
+  test('It should return customer 2 account successfully', async () => {
+    const {body} = await request(app.default)
+      .get('/api/v1/account/' + customer2AccountId)
+      .set({
+        'Accept': 'application/json',
+        'authorization': accessToken,
+      })
+      .expect('Content-Type', /json/)
+
+    expect(body.responseCode).toBe(1)
+    expect(body.responseText).toBe('ok')
+    expect(body.payload).toHaveProperty("account_number")
+    expect(body.payload).toHaveProperty("balance")
+    expect(body.payload.balance).toEqual(23000)
+  })
+})
+
+/**
+ * @description Test for account transfer
+ */
 describe('Get account history', () => {
-  test('It should return customer 1 account history', async () => {
+  test('It should return customer 1 first account history', async () => {
     const {body} = await request(app.default)
       .get('/api/v1/account/history/' + customer1AccountId)
       .set({
@@ -240,11 +361,24 @@ describe('Get account history', () => {
 
     expect(body.responseCode).toBe(1)
     expect(body.responseText).toBe('ok')
-    expect(body.payload).toHaveLength(2)
+    expect(body.payload).toHaveLength(3)
   })
   test('It should return customer 2 account history', async () => {
     const {body} = await request(app.default)
       .get('/api/v1/account/history/' + customer2AccountId)
+      .set({
+        'Accept': 'application/json',
+        'authorization': accessToken,
+      })
+      .expect('Content-Type', /json/)
+
+    expect(body.responseCode).toBe(1)
+    expect(body.responseText).toBe('ok')
+    expect(body.payload).toHaveLength(3)
+  })
+  test('It should return customer 1 second account history', async () => {
+    const {body} = await request(app.default)
+      .get('/api/v1/account/history/' + customer3AccountId)
       .set({
         'Accept': 'application/json',
         'authorization': accessToken,

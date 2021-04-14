@@ -21,6 +21,7 @@ class Account extends Model {
       account_number: {
         type: DataTypes.STRING,
         allowNull: false,
+        unique: true
       },
       balance: {
         type: DataTypes.INTEGER,

@@ -2,7 +2,7 @@
  * @description User request validator schema
  */
 
-const createTransferSchema = {
+const createCreateAccountSchema = {
   customer_id: {
     in: ['body'],
     isNumeric: true,
@@ -10,11 +10,44 @@ const createTransferSchema = {
     errorMessage: 'Not a valid customer id'
   },
 
-  receiver_account_number: {
+  deposit: {
     in: ['body'],
     isNumeric: true,
-    matches: /^\d{10}$/,
-    errorMessage: 'Not a valid account number'
+    matches: /^\d+$/,
+    errorMessage: 'Not a valid amount'
+  },
+}
+
+const createDepositSchema = {
+  account_id: {
+    in: ['body'],
+    isNumeric: true,
+    matches: /^\d+$/,
+    errorMessage: 'Not a valid account id'
+  },
+
+  deposit: {
+    in: ['body'],
+    isNumeric: true,
+    matches: /^\d+$/,
+    errorMessage: 'Not a valid amount'
+  },
+}
+
+const createTransferSchema = {
+  sender_account_id: {
+    in: ['body'],
+    isNumeric: true,
+    matches: /^\d+$/,
+    errorMessage: 'Not a valid account id'
+  },
+
+  receiver_account_id: {
+    in: ['body'],
+    isNumeric: true,
+    //matches: /^\d{10}$/,
+    matches: /^\d+$/,
+    errorMessage: 'Not a valid account id'
   },
 
   amount: {
@@ -26,4 +59,4 @@ const createTransferSchema = {
 
 }
 
-export { createTransferSchema }
+export { createCreateAccountSchema, createDepositSchema, createTransferSchema }

@@ -4,9 +4,100 @@
 import { transformResponse as response } from '../utils/transform-response'
 import { Request, Response } from 'express'
 
-import { Account, Transaction } from "../database/models";
+import { Account, Customer, Transaction } from "../database/models";
 
 export class AccountController {
+  /**
+   * @function Create an account for a customer
+   * @param req
+   * @param res
+   */
+  public async create(req: Request, res: Response) {
+    try {
+      let details = {
+        ...req.body,
+      }
+
+      const query = {
+        where: {
+          id: details.customer_id,
+        },
+        raw: true,
+      }
+      const customer: any = await Customer.findOne(query)
+
+      if (!customer)
+        throw new Error('Customer does not exist')
+
+      let min = Math.ceil(2111111111);
+      let max = Math.floor(2999999999);
+      let accountNumber = Math.floor(Math.random() * (max - min + 1)) + min;
+
+      const account: any = await Account.create({
+        customer_id: customer.id,
+        account_number: accountNumber,
+        balance: details.deposit
+      });
+      await Transaction.create({
+        initiator: req.session.user.id,
+        type: 'DEPOSIT',
+        receiver_id: account.id,
+        amount: details.deposit,
+        balance: details.deposit
+      });
+
+      const accountDetails = account.get({plain: true});
+      customer['account'] = accountDetails
+
+      res.status(200).json(response(1, 'ok', customer))
+    } catch (error: any) {
+      await res.status(400).json(response(0, error.message, error));
+    }
+  }
+
+  /**
+   * @function Deposit money into another
+   * @param req
+   * @param res
+   */
+  public async deposit(req: Request, res: Response) {
+    try {
+      const account: any = await Account.findOne({
+        where: {
+          id: req.body.account_id
+        },
+        raw: true
+      })
+
+      if (!account) {
+        throw new Error("Account Not Found")
+      }
+
+      let amount = parseFloat(req.body.deposit)
+      let balance = account.balance + amount
+
+      await Account.update({
+        balance: balance
+      }, {
+        where: {
+          id: account.id
+        }
+      })
+
+      await Transaction.create({
+        initiator: req.session.user.id,
+        type: 'DEPOSIT',
+        receiver_id: account.id,
+        amount: amount,
+        balance: amount
+      });
+
+      res.status(200).json(response(1, 'ok', {message: "Deposit Successful"}))
+    } catch (error: any) {
+      await res.status(400).json(response(0, error.message, error));
+    }
+  }
+
   /**
    * @function Transfer from one account to another
    * @param req
@@ -16,7 +107,7 @@ export class AccountController {
     try {
       const sender: any = await Account.findOne({
         where: {
-          customer_id: req.body.customer_id
+          id: req.body.sender_account_id
         },
         raw: true
       })
@@ -27,7 +118,7 @@ export class AccountController {
 
       const receiver: any = await Account.findOne({
         where: {
-          account_number: req.body.receiver_account_number
+          id: req.body.receiver_account_id
         },
         raw: true
       })
@@ -97,6 +188,10 @@ export class AccountController {
         raw: true
       }
 
+      if (req.query.customer_id) {
+        // @ts-ignore
+        query.where.customer_id = req.query.customer_id
+      }
       if (req.query.account_number) {
         // @ts-ignore
         query.where.account_number = req.query.account_number
