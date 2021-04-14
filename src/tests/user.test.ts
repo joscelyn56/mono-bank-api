@@ -3,8 +3,8 @@
  * @description Integration test for user module.
  */
 
-import * as app from "../src/app"
-import { Database, User } from '../src/database/models'
+import * as app from "../app"
+import { Database, User } from '../database/models'
 
 const request = require('supertest')
 
