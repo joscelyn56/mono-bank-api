@@ -1,52 +1,50 @@
 /**
  * Module Dependencies
  */
+import { JsonController, Get, Controller, Param, Post, Req, Res, Body } from "routing-controllers";
 import { transformResponse as response } from '../utils/transform-response'
 import { Request, Response } from 'express'
 import * as bcrypt from 'bcrypt'
 import * as jwt from '../utils/jwt'
 import { User } from "../database/models";
+import { UserService } from "../services/user.service";
 
+@JsonController()
+@Controller("/user")
 export class UserController {
+  constructor(
+    private userService: UserService
+  ) {
+
+  }
+
   /**
    * @description Registers a user account
    */
-  public async register(req: Request, res: Response) {
+  @Post('/register')
+  public async register(@Req() req: Request, @Res() res: Response, @Body() body:any) {
     try {
       let user = {
-        ...req.body,
-        password: await bcrypt.hash(req.body.password, 10)
+        ...body,
+        password: await bcrypt.hash(body.password, 10)
       }
-
-      const query = {
-        where: {email: user.email}
-      }
-      const existingUser = await User.findOne(query)
-
-      if (existingUser)
-        throw new Error('User account already exists')
-
-      const newUser = await User.create(user)
-
-      if (!newUser)
-        throw new Error('Could not create user account')
-
-      const {password, ...rest} = newUser.get({plain: true})
-      res.status(200).json(response(1, 'ok', rest))
+      const result = this.userService.create(user)
+      res.status(200).json(response(1, 'ok', result))
     } catch (error: any) {
       res.status(400).json(response(0, error.message, error));
     }
   }
 
+  @Post('/login')
   /**
    * @function Logs In user and generates an access token
    * @param req
    * @param res
    */
-  public async login(req: Request, res: Response) {
+  public async login(@Req() req: Request, @Res() res: Response, @Body() body:any) {
     try {
       let user = {
-        ...req.body
+        ...body
       }
       let userDetails: any = null
 
@@ -75,12 +73,13 @@ export class UserController {
     }
   }
 
+  @Get('/logout')
   /**
    * @function Just a simple function to invalidate user session token
    * @param req
    * @param res
    */
-  public async logout(req: Request, res: Response) {
+  public async logout(@Res() req: Request, @Res() res: Response) {
     req.session.is_auth = false
     req.session.user = null
     res.json(response(1, 'ok', {message: 'Logged out successfully'}));

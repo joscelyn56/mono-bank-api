@@ -1,19 +1,17 @@
 /**
  * @description Module dependencies
  */
-
+import 'reflect-metadata';
 import express, { IRouter } from 'express'
-import { createUserSchema, loginSchema } from '../../../middlewares/validators/user-validator'
 import { UserController } from '../../../controllers/user'
 import { authenticate } from '../../../utils/jwt'
+import { Container } from "typedi";
 
-const {checkSchema} = require('express-validator')
-
-const userController = new UserController()
 const router: IRouter = express.Router()
+const userController = Container.get<UserController>(UserController);
 
-router.post('/', checkSchema(createUserSchema), userController.register)
-router.post('/login', checkSchema(loginSchema), userController.login)
+router.post('/', userController.register)
+router.post('/login', userController.login)
 router.get('/logout', authenticate, userController.logout)
 
 export default router;

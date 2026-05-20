@@ -1,103 +1,38 @@
-/**
- * @description Module dependencies
- */
+import "reflect-metadata"; // this shim is required
+import { createExpressServer, useContainer } from "routing-controllers";
+import { Container } from "typedi";
+import log4js from 'log4js';
 
-import * as http from 'http';
-import app from './app';
-import dotenv from 'dotenv';
-import debugLog from './utils/debugger'
-global.Promise = require('bluebird');
+// require('appmetrics-dash').attach();
+// require('appmetrics-prometheus').attach();
 
-dotenv.config();
+const appName = "Mono Api";
+const logger = log4js.getLogger(appName);
+const path = require('path');
 
-/**
- * @description Normalize a port into a number, string, or false.
- */
-function normalizePort(val : string) {
-  const parsedPort = parseInt(val, 10);
+useContainer(Container);// creates express app, registers all controller routes and returns // you express app instance
+const app = createExpressServer({
+  routePrefix: "/api",
+  controllers: [__dirname + './controllers/*.ts']
+});
 
-  if (Number.isNaN(parsedPort)) {
-      // named pipe
-      return val;
-  }
+app.use(log4js.connectLogger(logger, {
+  level: process.env.LOG_LEVEL || 'info'
+}));
+// require('./routers/index')(app);
 
-  if (parsedPort >= 0) {
-      // port number
-      return parsedPort;
-  }
+const port = process.env.PORT || 3000;
+app.listen(port, function () {
+  console.log("started");
+  // logger.info(`Mono API listening on http://localhost:${port}/appmetrics-dash`);
+  // logger.info(`OpenAPI (Swagger) spec is available at http://localhost:${port}/swagger/api`);
+  // logger.info(`Swagger UI is available at http://localhost:${port}/explorer`);
+});
 
-  return false;
-}
+app.use(function (req: any, res: any, next: any) {
+  res.sendFile(path.join(__dirname, '../public', '404.html'));
+});
 
-/**
- * @description Get port from enviroment,normalize port and store in Express
- */
-
-const port  = normalizePort(process.env.PORT || '3000')
-app.set('port', port)
-
-/**
- * @description Create http server and listen on provided port
- * @param {Application} app - Express application interface
- */
-
-export const server : http.Server = http.createServer(app)
-server.listen(port)
-
-/**
- * @description Event listener for HTTP server "error" event.
- */
-
-function onError(error: any) : void {
-  if (error.syscall !== 'listen') {
-      throw error;
-  }
-
-  const bind = typeof port === 'string'
-      ? `Pipe${port}`
-      : `Port${port}`;
-
-  // handle specific listen errors with friendly messages
-  switch (error.code) {
-      case 'EACCES':
-          console.error(`${bind} requires elevated privileges`);
-          process.exit(1);
-          break;
-      case 'EADDRINUSE':
-          console.error(`${bind} is already in use`);
-          process.exit(1);
-          break;
-      default:
-          throw error;
-  }
-}
-
-/**
-* @description Event listener for HTTP server "listening" event.
-*/
-function onListening() {
-  const addr : any  = server.address();
-  const bind  = typeof addr === 'string'
-      ? `${addr}`
-      : `${addr.port}`;
-
-  debugLog(`Server listening on port: ${bind}`);
-}
-
-/**
- * @description Listen to error event and handling it
- */
-server.on('error', onError);
-server.on('listening', onListening);
-
-/**
- * @description Catch unhandled rejections and uncaugth exceptions
- */
-process.on('unhandledRejection', (reason : Error, promise : Promise<any>) => {
-  throw reason
-})
-
-process.on('uncaughtException', (error : Error) => {
-  console.error('There was an uncaught err', error)
-  process.exit(1)
-})
+app.use(function (err: any, req: any, res: any, next: any) {
+  res.sendFile(path.join(__dirname, '../public', '500.html'));
+});
